@@ -8,9 +8,30 @@ import { FaInstagram } from "react-icons/fa";
 function App() {
   const [dice, setDice] = useState(allNewDice());
   const [tenzies, setTenzies] = useState(false);
+  const [time, setTime] = useState(0);
 
   useEffect(() => {
-    const allDiceHeld = dice.every((die) => die.isHeld);
+    let timer;
+
+    if (!tenzies) {
+      setTime(0);
+      timer = setInterval(() => {
+        setTime((prevTime) => prevTime + 1);
+      }, 1000);
+    }
+    return () => {
+      clearInterval(timer);
+    };
+  }, [tenzies]);
+
+  useEffect(() => {
+    if (tenzies) {
+      saveScore();
+    }
+  }, [tenzies]);
+
+  useEffect(() => {
+    const allDiceHeld = isAllHeld();
     const allDiceSameValue = dice.every((die) => die.value === dice[0].value);
     if (allDiceHeld && allDiceSameValue) {
       setTenzies(true);
@@ -18,6 +39,12 @@ function App() {
       setTenzies(false);
     }
   }, [dice]);
+
+  function isAllHeld(config) {
+    return config === "!"
+      ? dice.every((die) => !die.isHeld)
+      : dice.every((die) => die.isHeld);
+  }
 
   function allNewDice() {
     const newDice = [];
@@ -29,7 +56,9 @@ function App() {
   }
 
   function rollDice() {
-    // dice'ların hepsine bakacak, isHeld true olanlarda değişiklik yapmayacak, geri kalanların value'sini değiştirecek
+    if (isAllHeld("!")) {
+      setTime(0);
+    }
     setDice((oldDice) =>
       oldDice.map((die) => {
         return !die.isHeld
@@ -40,11 +69,28 @@ function App() {
   }
 
   function holdDice(id) {
-    setDice((prevDice) =>
-      prevDice.map((die) => {
-        return die.id === id ? { ...die, isHeld: !die.isHeld } : die;
-      })
-    );
+    if (!isAllHeld()) {
+      setDice((prevDice) =>
+        prevDice.map((die) => {
+          return die.id === id ? { ...die, isHeld: !die.isHeld } : die;
+        })
+      );
+    }
+  }
+
+  function saveScore() {
+    const prevScore = localStorage.getItem("score");
+    prevScore === null || time < prevScore
+      ? localStorage.setItem("score", time)
+      : localStorage.setItem("score", prevScore);
+  }
+
+  function getScore() {
+    if (localStorage.getItem("score") > 0) {
+      return localStorage.getItem("score");
+    } else {
+      return 0;
+    }
   }
 
   const diceElements = dice.map((number) => (
@@ -56,9 +102,20 @@ function App() {
     />
   ));
 
+  const styles = {
+    color:
+      time <= 10
+        ? "#026b00"
+        : time > 10 && time <= 20
+        ? "#a39500"
+        : time > 20
+        ? "#eb0000"
+        : "none",
+  };
   return (
-    <div className="w-full h-full items-center flex justify-center min-h-[100vh]">
+    <div className="w-full h-full items-center flex flex-col justify-center min-h-[100vh]">
       {tenzies && <Confetti className="w-full h-full object-cover" />}
+      {tenzies && <h3 className="font-bold">Your Best Score: {getScore()}s</h3>}
       <div className="w-[360px] h-[379px] items-center flex justify-center bg-[#0B2434]">
         <div className="flex flex-col gap-5 w-[320px] h-[320px] bg-[#F5F5F5] items-center justify-center rounded-xl px-8">
           <div className="w-full h-auto flex flex-col items-center justify-center">
@@ -74,12 +131,17 @@ function App() {
           <div className="grid grid-rows-2 grid-flow-col gap-3 w-full h-auto">
             {diceElements}
           </div>
-          <button
-            onClick={() => (tenzies ? setDice(allNewDice()) : rollDice())}
-            className="h-9 w-[110px] bg-[#5035FF] hover:bg-[#6048ff] rounded text-white font-bold active:shadow-inner shadow-xl"
-          >
-            {tenzies ? "New Game" : "Roll"}
-          </button>
+          <div className="items-center flex flex-col justify-center">
+            <button
+              onClick={() => (tenzies ? setDice(allNewDice()) : rollDice())}
+              className="h-9 w-[110px] bg-[#5035FF] hover:bg-[#6048ff] rounded text-white font-bold active:shadow-inner shadow-xl"
+            >
+              {tenzies ? "New Game" : "Roll"}
+            </button>
+            <h6 className="text-xs">
+              Time: <span style={styles}>{time}</span>s
+            </h6>
+          </div>
           <h6 className="flex justify-center items-center w-full text-[#0B2434] text-xs">
             Developed by{" "}
             <a
