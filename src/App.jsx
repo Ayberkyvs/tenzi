@@ -4,6 +4,7 @@ import Die from "./components/Die";
 import { nanoid } from "nanoid";
 import Confetti from "./components/Confetti";
 import { FaInstagram } from "react-icons/fa";
+import Header from "./components/Header";
 
 function App() {
   const [dice, setDice] = useState(allNewDice());
@@ -113,11 +114,12 @@ function App() {
         : "none",
   };
   return (
-    <div className="w-full h-full items-center flex flex-col justify-center min-h-[100vh]">
+    <div className="w-full h-full items-center flex flex-col justify-center min-h-[100vh] bg-[#c7e9ff]">
+      <Header />
       {tenzies && <Confetti className="w-full h-full object-cover" />}
       {tenzies && <h3 className="font-bold">Your Best Score: {getScore()}s</h3>}
       <div className="w-[360px] h-[379px] items-center flex justify-center bg-[#0B2434]">
-        <div className="flex flex-col gap-5 w-[320px] h-[320px] bg-[#F5F5F5] items-center justify-center rounded-xl px-8">
+        <div className="flex flex-col gap-4 w-[320px] h-[320px] bg-[#F5F5F5] items-center justify-center rounded-xl px-8">
           <div className="w-full h-auto flex flex-col items-center justify-center">
             <h1 className="font-bold text-2xl text-[#2B283A] mb-2">
               {tenzies ? "Congrulations 👏" : "Tenzies"}
